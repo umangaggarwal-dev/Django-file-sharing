@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Prototype</title>
+	{% load static %}
+</head>
+<body>
+<input id='user' placeholder="Enter Username" />
+<button id="submit">Send me the mail</button>
+<div id="result"></div>
+<script type="text/javascript" src="{% static 'file_share/jquery-3.1.1.js' %}"></script>
+<script type="text/javascript">
+	var ele = document.getElementById('user');
+	document.getElementById('submit').onclick = function (){
+		var username = ele.value;
+		console.log(username);
+		$.ajax({
+			url: "{% url 'forgot_mail' %}",
+			type: 'POST',
+			data: {
+				'username': username
+			},
+			dataType: 'json',
+			success: function(data){
+				if(data.confirm){
+					//var result_ele = document.getElementById('result');
+					//result_ele.innerHTML = "We have sent you the email";
+					window.location.href = "http://localhost:8000/forgot_mail_confirmation/";
+				}
+			}
+		});
+	}
+</script>
+</body>
+</html>

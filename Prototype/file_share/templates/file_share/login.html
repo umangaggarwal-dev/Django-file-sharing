@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Prototype</title>
+</head>
+<body>
+<form action='#' method="POST">
+	{% csrf_token %}
+	{{form}}
+	<input type="submit" value="Login" />
+</form>
+<a href="{% url 'forgot_mail' %}"><button>Forgot Password?</button></a>
+</body>
+</html>

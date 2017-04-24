@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Prototype</title>
+	{% load static %}
+	<script type="text/javascript" src="{% static 'file_share/drive.js' %}"></script>
+</head>
+<body>
+{% if files %}
+{% for f in files %}
+	<a href='{{ MEDIA_URL }}{{ f.relative_path }}'>{{ f.filename }}</a>
+{% endfor %}
+{% endif %}
+<br/>
+{% if folders %}
+{% for f in folders %}
+	<button name ="{{f.name}}" onclick="traverse(this)">{{f.name}}</button>
+{% endfor %}
+{% endif %}
+	<br/>
+	<input type="file" id="file" />
+	<br/><input type="text" id="targetUser" placeholder="Search a user"/>
+	<div id="users"></div>
+	<div id="sendFile"></div>
+	<a href="{% url 'addfriends' %}"><button>Trusted Users</button></a>
+
+<br/><a href="{% url 'logout' %}"><button>Logout</button></a>
+
+<script type="text/javascript" src="{% static 'file_share/jquery-3.1.1.js' %}"></script>
+<script type="text/javascript">
+var kdata;
+var file;
+var offset = 1024;
+var start=0;
+var end = start+offset;
+    
+    function selectFile(e){
+        file = e.target.files[0];
+        upload();
+    }    
+
+	function upload(){
+        if(file.size<offset){
+            end=file.size;
+        }
+		var freader = new FileReader();
+		blob = file.slice(start,end);
+		freader.readAsBinaryString(blob);
+		//var fileData = $(this).val;
+		
+		freader.onloadend = function(evt){
+			storedata(evt.target.result);
+            chunkComp();
+		}
+	}
+
+    function chunkComp(){
+        if(end==file.size){
+            return;
+        }
+        else{
+            start= end;
+            end = end + offset;
+            if(end>file.size){
+                end=file.size
+            }
+            upload();
+        }
+    }
+
+	function storedata(fdata){
+		kdata = fdata;
+		makeajax();
+	}
+
+	function makeajax(){
+		//console.log(data);
+		var path = window.location.pathname;
+		$.ajax({
+			//url: $(this).attr('action'),
+			url: "{% url 'upload' %}",
+			type: 'POST',
+			headers:{
+				'filename': file.name.replace('.'+file.name.split('.')[file.name.split('.').length-1], ''),
+				'extension': file.name.split('.')[file.name.split('.').length-1],
+				'target': path,
+			},
+			data: {
+				'filedata': kdata,
+			},
+			cache: false,
+			success: function(result){
+				location.reload();
+			}
+		});
+	}
+	$("#file").change(selectFile);
+</script>
+
+<script type="text/javascript">
+/*function myFunction(){
+	var x = document.getElementById('targetUser');
+	var v = document.activeElement.id;
+	y = document.getElementById('sendFile');
+	if (v == x){
+		while (y.hasChildNodes()){
+			y.removeChild(y.firstChild);
+		}
+	}
+}*/
+	var targetUser;
+	y = document.getElementById('sendFile');
+	$('#targetUser').focus(function (){
+		/*var x = document.getElementById('targetUser');
+		var v = document.activeElement.id;*/
+		while (y.hasChildNodes()){
+			y.removeChild(y.firstChild);
+		}
+		//alert("active");
+	});
+
+	$("#targetUser").change(function (){
+		targetUser = $(this).val();
+		$.ajax({
+			url: "{% url 'validate_username' %}",
+			data: {
+				'username': targetUser,
+			},
+			dataType: 'json',
+			success: function(data){
+				if(data.is_taken){
+					ele = document.createElement('INPUT');
+					ele.setAttribute("type", "file");
+					ele.setAttribute("id", "shareFile");
+					y.appendChild(ele);
+					$('#shareFile').focus();
+					temp();
+				}
+			}
+		});
+	});
+	var newData;
+	var sharedFile;
+	function share(e){
+		sharedFile = e.target.files[0];
+		var filereader = new FileReader();
+		blob = sharedFile.slice(0, sharedFile.size);
+		filereader.readAsBinaryString(blob);
+		filereader.onloadend = function (evt){
+			storefile(evt.target.result)
+		}
+	}
+	function storefile(file_data){
+		newData = file_data;
+		ajaxreq();
+	}
+	function ajaxreq(){
+		$.ajax({
+			url: "{% url 'share' %}",
+			type: 'POST',
+			headers: {
+				'filename': sharedFile.name.replace('.'+sharedFile.name.split('.')[sharedFile.name.split('.').length-1], ''),
+				'extension': sharedFile.name.split('.')[sharedFile.name.split('.').length-1],
+				'targetuser': targetUser
+			},
+			data: {
+				'filedata': newData,
+			},
+			cache: false,
+			success: function(result){
+				location.reload();
+			}
+		});
+	}
+	function temp(){$("#shareFile").change(share);}
+</script>
+
+</body>
+</html>

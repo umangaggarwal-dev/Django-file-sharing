@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Prototype</title>
+	{% load static %}
+</head>
+<body>
+<form action='#' method="POST">
+	{% csrf_token %}
+	{{form}}
+	<input type="submit" value="Create Account" />
+</form>
+
+<script type="text/javascript" src="{% static 'file_share/jquery-3.1.1.js' %}"></script>
+<script type="text/javascript">
+	$("#username").change(function (){
+		var username = $(this).val();
+
+		$.ajax({
+			url: "{% url 'validate_username' %}",
+			data: {
+				'username': username
+			},
+			dataType: 'json',
+			success: function(data){
+				if(data.is_taken){
+					alert("Man! this uername is already there!!!");
+				}
+			}
+		});
+	});
+</script>
+
+</body>
+</html>

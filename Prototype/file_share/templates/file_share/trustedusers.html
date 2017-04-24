@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Prototype</title>
+	{% load static %}
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+</head>
+<body>
+{% if friends %}
+	{% for f in friends %}
+
+	{% endfor %}
+{% endif %}
+<div class = 'dropdown'>
+<input class="dropdown-toggle" data-toggle="dropdown" type="text" placeholder="Search Users" name="users" id="search" />
+<div class="search_results"></div>
+<span class = 'no_res'></span>
+</div>
+<script type="text/javascript" src="{% static 'file_share/jquery-3.1.1.js' %}"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$("#search").change(function (){
+		var input = $(this).val();
+
+		$.ajax({
+			url: "{% url 'search_users' %}",
+			data: {
+				'username': input,
+			},
+			dataType: 'json',
+			success: function(results){
+				if(results['user_list'] == 'No such user'){
+					var ele = $('.no_res');
+					ele.innerHTML = results;
+				}
+				else{
+					var ele = $('.search_results');
+					var list;
+					list = results;
+					$('.search_results').empty();
+					$('.search_results').append('<ul class="dropdown-menu" id="res" style="display:block"></ul>');
+					$('#res').empty();
+					var res = results['user_list'];
+					for(i in res){
+						var x = res[i];
+						var name = x['username'];
+						$('#res').append("<li>"+name+"</li>");
+						//$('#res').append("</li>");
+						$(".dropdown-toggle").dropdown();
+					}
+				}
+			}
+		});
+	});
+</script>
+</body>
+</html>
